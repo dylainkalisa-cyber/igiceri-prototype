@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Igiceri — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* surfaces */
+  --bg:#000000;--s1:#0C0D0F;--s2:#121316;--s3:#1C1D21;
+  /* accent — single income green */
+  --acc:#34E29B;--acc-d:#0F7E55;--acc-soft:rgba(52,226,155,0.10);--acc-line:rgba(52,226,155,0.22);
+  --expense:#FF6B6B;
+  /* text */
+  --t1:#FAFAFA;--t2:#8A8D93;--t3:#54565C;
+  --line:rgba(255,255,255,0.07);--line2:rgba(255,255,255,0.12);
+  /* type */
+  --f-ui:'Inter',-apple-system,system-ui,sans-serif;
+  --f-display:'Space Grotesk',var(--f-ui);
+  /* radius / spacing */
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-xl:28px;
+  --sp:8px;
+  --dur:200ms;--ease:cubic-bezier(0.4,0,0.2,1);
+}
+body{background:#000;min-height:100vh;font-family:var(--f-ui);color:var(--t1);display:flex;flex-direction:column;align-items:center;padding:24px 0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.page-title{color:var(--t2);font-size:13px;text-align:center;margin-bottom:18px;font-weight:500;letter-spacing:-0.01em}
+.page-title b{color:var(--acc);font-weight:600}
+.nav-tabs{display:flex;gap:4px;background:#0C0D0F;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:22px;flex-wrap:wrap;justify-content:center;max-width:340px}
+.ntab{padding:8px 15px;font-size:12px;font-weight:500;border:none;background:transparent;color:var(--t2);border-radius:10px;cursor:pointer;transition:all var(--dur) var(--ease);letter-spacing:-0.01em}
+.ntab.on{background:#1C1D21;color:#fff}
+.phone{width:340px;background:var(--bg);border-radius:48px;border:1px solid #1C1D21;overflow:hidden;display:flex;flex-direction:column;height:724px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,0.7)}
+.sb{height:52px;background:var(--bg);display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 11px;flex-shrink:0}
+.sb-time{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-0.02em}
+.sb-icons{display:flex;gap:7px}.sb-icons i{font-size:15px;color:var(--t1)}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;display:none;flex-direction:column}
+.screen::-webkit-scrollbar{display:none}
+.screen.on{display:flex;animation:fade var(--dur) var(--ease)}
+.screen>*{flex-shrink:0}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* bottom nav */
+.tbar{height:74px;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;padding-bottom:12px}
+.ti-nav{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:48px;min-height:48px;justify-content:center;cursor:pointer;transition:all var(--dur) var(--ease);position:relative}
+.ti-nav i{font-size:23px;color:var(--t3);transition:color var(--dur)}
+.ti-nav span{font-size:10px;color:var(--t3);font-weight:500;transition:color var(--dur);letter-spacing:-0.01em}
+.ti-nav.on i,.ti-nav.on span{color:var(--t1)}
+.ti-nav.on::after{content:'';position:absolute;bottom:-1px;width:4px;height:4px;border-radius:50%;background:var(--acc)}
+.badge{position:absolute;top:5px;right:9px;width:7px;height:7px;background:var(--acc);border-radius:50%;border:2px solid #000}
+.badge.count{top:-3px;right:-2px;width:auto;min-width:16px;height:16px;border-radius:8px;background:var(--acc);color:#04140C;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg);font-family:var(--f-display)}
+.icon-btn.ring i{animation:bellring 0.6s var(--ease)}
+@keyframes bellring{0%,100%{transform:rotate(0)}20%{transform:rotate(16deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-4deg)}}
+/* incoming-money push banner */
+.push{position:absolute;top:10px;left:12px;right:12px;display:flex;gap:11px;align-items:center;background:rgba(20,21,24,0.92);backdrop-filter:blur(18px);border:1px solid var(--acc-line);border-radius:18px;padding:12px 14px;z-index:90;cursor:pointer;opacity:0;transform:translateY(-130%);transition:opacity 260ms var(--ease),transform 320ms var(--ease);box-shadow:0 12px 32px rgba(0,0,0,0.6)}
+.push.show{opacity:1;transform:translateY(0)}
+.push-ic{width:38px;height:38px;border-radius:11px;background:var(--acc-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.push-ic i{font-size:19px;color:var(--acc)}
+.push-body{flex:1;min-width:0}
+.push-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.push-app{font-size:10.5px;color:var(--acc);font-weight:600;letter-spacing:0.01em}
+.push-time{font-size:10px;color:var(--t3)}
+.push-msg{font-size:12.5px;color:var(--t1);font-weight:500;letter-spacing:-0.01em;line-height:1.35}
+
+/* auth gate */
+.auth{position:absolute;inset:52px 0 0 0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;padding:34px 30px 24px;text-align:center}
+.auth-mark{width:60px;height:60px;border-radius:20px;background:var(--acc-soft);border:1px solid var(--acc-line);display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-size:28px;font-weight:600;color:var(--acc);margin-bottom:22px}
+.auth-title{font-family:var(--f-display);font-size:22px;font-weight:600;color:var(--t1);letter-spacing:-0.03em}
+.auth-sub{font-size:13px;color:var(--t3);margin-top:6px;letter-spacing:-0.01em}
+.auth-name{width:100%;margin-top:34px;display:flex;flex-direction:column;gap:12px}
+.auth-input{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-size:16px;color:var(--t1);outline:none;font-family:var(--f-ui);text-align:center;transition:border var(--dur)}
+.auth-input:focus{border-color:var(--acc)}
+.auth-input::placeholder{color:var(--t3)}
+.auth-btn{background:var(--acc);color:#04140C;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--f-ui);transition:opacity var(--dur),transform var(--dur)}
+.auth-btn:disabled{opacity:0.35;cursor:not-allowed}
+.auth-btn:not(:disabled):active{transform:scale(0.97)}
+.auth-pin{width:100%;margin-top:30px;display:flex;flex-direction:column;align-items:center}
+.pin-dots{display:flex;gap:16px;margin-bottom:10px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line2);transition:all var(--dur) var(--ease)}
+.pin-dot.on{background:var(--acc);border-color:var(--acc)}
+.pin-err{font-size:12px;color:var(--expense);height:16px;letter-spacing:-0.01em}
+.pin-err.shake{animation:shk 0.4s}
+@keyframes shk{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:240px;margin-top:14px}
+.key{height:56px;border-radius:16px;background:var(--s1);border:1px solid var(--line);color:var(--t1);font-family:var(--f-display);font-size:22px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--dur) var(--ease);font-variant-numeric:tabular-nums}
+.key:active{background:var(--s3);transform:scale(0.95)}
+.key.ghost{background:transparent;border:none}
+.key.ghost:active{transform:none}
+.key i{font-size:22px;color:var(--t2)}
+.auth-link{margin-top:22px;font-size:12.5px;color:var(--t2);cursor:pointer;letter-spacing:-0.01em}
+.auth-link:active{color:var(--t1)}
+
+/* header */
+.hero{background:var(--bg);padding:14px 22px 2px;flex-shrink:0}
+.hero-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.greet-sub{font-size:13px;color:var(--t3);margin-bottom:3px;font-weight:400;letter-spacing:-0.01em}
+.greet-name{font-family:var(--f-display);font-size:21px;font-weight:600;color:var(--t1);letter-spacing:-0.03em}
+.hero-actions{display:flex;gap:10px}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:transparent;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--dur) var(--ease);position:relative}
+.icon-btn:active{transform:scale(0.92);background:var(--s2)}
+.icon-btn i{font-size:19px;color:var(--t2)}
+
+/* CURRENT BALANCE — flat, minimal */
+.bal-block{padding:4px 22px 12px}
+.bal-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bal-eye{margin-left:auto;width:36px;height:36px;border-radius:50%;background:transparent;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--dur) var(--ease)}
+.bal-eye:active{transform:scale(0.92);background:var(--s2)}
+.bal-eye i{font-size:17px;color:var(--t2)}
+.bal-label{font-size:12px;color:var(--t2);font-weight:500;letter-spacing:0.02em}
+.sms-badge{display:inline-flex;align-items:center;gap:5px;background:var(--acc-soft);color:var(--acc);font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;letter-spacing:0.01em}
+.sms-badge i{font-size:11px}
+.bal-amount{font-family:var(--f-display);font-size:42px;font-weight:600;color:#fff;letter-spacing:-0.045em;line-height:0.95;font-variant-numeric:tabular-nums}
+.bal-amount .cur{font-size:19px;color:var(--t3);font-weight:500;margin-right:8px;letter-spacing:-0.02em}
+/* hidden-balance state */
+.amts-hidden #balVal{filter:blur(11px);user-select:none}
+#balVal{transition:filter var(--dur) var(--ease)}
+.bal-source{display:flex;align-items:center;gap:8px;margin-top:10px}
+.bal-source i{font-size:14px;color:var(--acc);flex-shrink:0}
+.bal-source-txt{font-size:11px;color:var(--t3);line-height:1.4;letter-spacing:-0.01em}
+.bal-source-txt b{color:var(--t2);font-weight:500}
+
+/* home period segmented control */
+.home-seg-wrap{padding:0 22px 10px}
+.home-seg{display:flex;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:4px;gap:3px}
+.hseg{flex:1;padding:8px 4px;font-size:12px;font-weight:500;color:var(--t3);border:none;background:transparent;border-radius:9px;cursor:pointer;transition:all var(--dur) var(--ease);font-family:var(--f-ui);letter-spacing:-0.01em}
+.hseg.on{background:var(--t1);color:#000;font-weight:600}
+
+/* account split — minimal hairline cards */
+.acct-row{display:flex;gap:10px;padding:0 22px 10px}
+.acct{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px}
+.acct-h{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.acct-dot{width:6px;height:6px;border-radius:50%}
+.acct-name{font-size:11px;color:var(--t2);font-weight:500;letter-spacing:-0.01em}
+.acct-v{font-family:var(--f-display);font-size:16px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.io-ic{width:18px;height:18px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--acc-soft)}
+.io-ic i{font-size:12px;color:var(--acc)}
+.io-ic.out{background:rgba(255,107,107,0.12)}
+.io-ic.out i{color:var(--expense)}
+
+/* money in — minimal inline row */
+.in-row{margin:0 22px 18px;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md)}
+.in-l{display:flex;align-items:center;gap:11px}
+.in-ic{width:34px;height:34px;border-radius:10px;background:var(--acc-soft);display:flex;align-items:center;justify-content:center}
+.in-ic i{font-size:17px;color:var(--acc)}
+.in-lbl{font-size:11px;color:var(--t3);font-weight:500;margin-bottom:2px;letter-spacing:-0.01em}
+.in-v{font-family:var(--f-display);font-size:17px;font-weight:600;color:var(--acc);font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.in-r{text-align:right}
+.in-tr{font-size:11px;color:var(--acc);font-weight:600;display:flex;align-items:center;gap:3px;justify-content:flex-end}
+.in-out{font-size:11px;color:var(--t3);margin-top:3px;letter-spacing:-0.01em}
+
+/* sms paste */
+.sms-input-bar{display:flex;gap:8px;padding:0 22px 12px}
+.sms-input{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:12px;color:var(--t1);outline:none;font-family:var(--f-ui);letter-spacing:-0.01em;transition:border var(--dur)}
+.sms-input:focus{border-color:var(--line2)}
+.sms-input::placeholder{color:var(--t3)}
+.sms-btn{padding:0 18px;background:var(--acc);color:#04140C;border:none;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--f-ui);transition:transform var(--dur)}
+.sms-btn:active{transform:scale(0.96)}
+
+/* quick actions */
+.qa-row{display:flex;gap:10px;padding:0 22px 12px}
+.qa{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.qa-ic{width:100%;aspect-ratio:1.5;max-height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--s1);border:1px solid var(--line);transition:all var(--dur) var(--ease)}
+.qa-ic:active{transform:scale(0.95);background:var(--s2)}
+.qa-ic i{font-size:21px;color:var(--t1)}
+.qa-lbl{font-size:10.5px;color:var(--t2);font-weight:500;text-align:center;letter-spacing:-0.01em}
+
+/* sections */
+.sc{padding:0 22px 22px}
+.sc-recent{padding-bottom:10px}
+.sc-recent .sh{margin-bottom:6px}
+.sc-recent .tr{padding:9px 0}
+.sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.st{font-family:var(--f-display);font-size:16px;font-weight:600;color:var(--t1);letter-spacing:-0.03em}
+.sl{font-size:12px;color:var(--t2);cursor:pointer;font-weight:500;letter-spacing:-0.01em}
+.sl:active{color:var(--t1)}
+
+/* transaction rows */
+.list{display:flex;flex-direction:column}
+.tr{display:flex;align-items:center;gap:13px;padding:13px 0;cursor:pointer;transition:opacity var(--dur)}
+.tr:active{opacity:0.6}.tr+.tr{border-top:1px solid var(--line)}
+.tr-ic{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--s2)}
+.tr-ic i{font-size:19px;color:var(--t2)}
+.tr-ic.in i{color:var(--acc)}
+.tr-ic.in{background:var(--acc-soft)}
+.tr-info{flex:1;min-width:0}
+.tr-name{font-size:14px;font-weight:500;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.02em}
+.tr-cat{font-size:11.5px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px;letter-spacing:-0.01em}
+.tr-right{text-align:right;flex-shrink:0}
+.tr-amt{font-family:var(--f-display);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.tr-bal{font-size:10px;color:var(--t3);margin-top:3px;font-variant-numeric:tabular-nums;font-family:var(--f-display)}
+.in-tag{font-size:9px;font-weight:600;color:var(--acc);letter-spacing:0.04em}
+.dot-sep{width:3px;height:3px;border-radius:50%;background:var(--t3)}
+
+/* insight */
+.insight{display:flex;gap:13px;align-items:flex-start;padding:16px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md)}
+.ins-ic{width:36px;height:36px;border-radius:11px;background:var(--acc-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}.ins-ic i{font-size:17px;color:var(--acc)}
+.ins-title{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:-0.02em}
+.ins-msg{font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5;letter-spacing:-0.01em}
+
+/* In/Out screen */
+.scr-hd{padding:18px 22px 14px;background:var(--bg);flex-shrink:0}
+.scr-title{font-family:var(--f-display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-0.04em;margin-bottom:14px}
+.searchbar{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:11px 14px;transition:border var(--dur)}
+.searchbar:focus-within{border-color:var(--line2)}
+.searchbar i{font-size:17px;color:var(--t3);flex-shrink:0}
+.searchbar input{flex:1;background:transparent;border:none;outline:none;color:var(--t1);font-family:var(--f-ui);font-size:13px;letter-spacing:-0.01em;padding:0}
+.searchbar input::placeholder{color:var(--t3)}
+.sb-clear{cursor:pointer}.sb-clear:active{color:var(--t1)}
+.date-range{display:flex;align-items:center;gap:8px;padding:0 22px 14px}
+.dr-field{flex:1;display:flex;flex-direction:column;gap:3px;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:8px 12px;transition:border var(--dur)}
+.dr-field:focus-within{border-color:var(--acc)}
+.dr-lbl{font-size:9.5px;color:var(--t3);font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
+.dr-input{background:transparent;border:none;outline:none;color:var(--t1);font-family:var(--f-display);font-size:13px;font-weight:500;letter-spacing:-0.02em;width:100%;padding:0;color-scheme:dark;cursor:pointer}
+.dr-input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+.dr-arrow{font-size:15px;color:var(--t3);flex-shrink:0}
+.tx-sum{display:flex;padding:0 22px 18px;gap:10px}
+.tsc{flex:1;padding:14px;text-align:left;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md)}
+.tsc.lead{background:var(--acc-soft);border-color:var(--acc-line)}
+.tsc-v{font-family:var(--f-display);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.tsc-l{font-size:10.5px;color:var(--t3);margin-top:4px;font-weight:500;letter-spacing:-0.01em}
+.tx-filter{display:flex;gap:8px;overflow-x:auto;padding:0 22px 14px;scrollbar-width:none}
+.tx-filter::-webkit-scrollbar{display:none}
+.chip{padding:7px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all var(--dur) var(--ease);border:1px solid var(--line);background:transparent;color:var(--t2);letter-spacing:-0.01em}
+.chip.on{background:var(--t1);color:#000;border-color:var(--t1);font-weight:600}
+.gh{font-size:11px;font-weight:600;color:var(--t3);padding:8px 22px 8px;letter-spacing:0.02em;display:flex;justify-content:space-between;text-transform:uppercase}
+.gh .gh-in{color:var(--acc);font-weight:600;font-family:var(--f-display);letter-spacing:-0.02em;text-transform:none;font-size:12px}
+.tx-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 22px;text-align:center}
+.tx-empty i{font-size:34px;color:var(--t3);margin-bottom:12px}
+.tx-empty-t{font-family:var(--f-display);font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-0.02em}
+.tx-empty-s{font-size:12px;color:var(--t3);margin-top:5px;letter-spacing:-0.01em}
+
+/* chat */
+.chat-outer{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.chat-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--line);background:var(--bg);flex-shrink:0}
+.chat-hdr-title{font-family:var(--f-display);font-size:20px;font-weight:600;color:var(--t1);letter-spacing:-0.03em}
+.chat-hdr-sub{font-size:11.5px;color:var(--t3);margin-top:4px;display:flex;align-items:center;gap:6px;letter-spacing:-0.01em}
+.online-dot{width:6px;height:6px;background:var(--acc);border-radius:50%}
+.chat-msgs{flex:1;overflow-y:auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+.chat-msgs::-webkit-scrollbar{display:none}
+.msg-row{display:flex;gap:9px;align-items:flex-end}.msg-row.u{flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:9px;background:var(--acc-soft);display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-size:12px;font-weight:600;color:var(--acc);flex-shrink:0}
+.bbl{padding:11px 15px;border-radius:18px;font-size:13px;line-height:1.5;max-width:220px;color:var(--t1);letter-spacing:-0.01em}
+.bbl.ai{background:var(--s1);border:1px solid var(--line);border-bottom-left-radius:5px}
+.bbl.u{background:var(--t1);color:#000;border-bottom-right-radius:5px;font-weight:500}
+.msg-time{font-size:10px;color:var(--t3);margin-top:5px;padding:0 4px}
+.dot-typing{display:flex;gap:4px;align-items:center;padding:13px 15px;background:var(--s1);border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:5px}
+.dot{width:5px;height:5px;background:var(--t3);border-radius:50%;animation:dotbounce 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes dotbounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;padding:6px 14px 12px}
+.sugg-c{padding:8px 13px;background:transparent;border:1px solid var(--line2);border-radius:99px;font-size:12px;color:var(--t2);cursor:pointer;transition:all var(--dur) var(--ease);letter-spacing:-0.01em}
+.sugg-c:hover{border-color:var(--acc);color:var(--acc)}
+.chat-in{display:flex;align-items:center;gap:9px;padding:12px 16px 14px;border-top:1px solid var(--line);background:var(--bg);flex-shrink:0}
+.chat-input{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:22px;padding:11px 16px;font-size:13px;color:var(--t1);outline:none;font-family:var(--f-ui);letter-spacing:-0.01em;transition:border var(--dur)}
+.chat-input:focus{border-color:var(--line2)}
+.chat-input::placeholder{color:var(--t3)}
+.send-btn{width:40px;height:40px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform var(--dur);border:none}
+.send-btn:active{transform:scale(0.9)}.send-btn i{font-size:17px;color:#04140C}
+
+/* reports */
+.period-row{display:flex;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:4px;gap:3px}
+.ptab{flex:1;padding:8px 4px;font-size:12px;font-weight:500;color:var(--t3);border:none;background:transparent;border-radius:9px;cursor:pointer;transition:all var(--dur) var(--ease);font-family:var(--f-ui);letter-spacing:-0.01em}
+.ptab.on{background:var(--t1);color:#000;font-weight:600}
+.rep-income{margin:18px 22px 18px;border:1px solid var(--acc-line);border-radius:var(--r-lg);padding:20px;background:var(--acc-soft)}
+.ri-l{font-size:12px;color:var(--acc);font-weight:500;letter-spacing:0.01em}
+.ri-v{font-family:var(--f-display);font-size:36px;font-weight:600;color:#fff;letter-spacing:-0.04em;font-variant-numeric:tabular-nums;margin-top:6px}
+.ri-sub{font-size:11.5px;color:var(--t2);margin-top:5px;letter-spacing:-0.01em}
+.sum2{display:flex;gap:10px;padding:0 22px 22px}
+.sum-card{flex:1;padding:16px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--s1)}
+.sum-v{font-family:var(--f-display);font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.sum-l{font-size:10.5px;font-weight:500;margin-top:5px;color:var(--t3);letter-spacing:-0.01em}
+.bars2{display:flex;align-items:flex-end;gap:10px;height:130px;padding-top:8px;position:relative}
+.bg-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;cursor:pointer;transition:opacity var(--dur)}
+.bg-pair{display:flex;gap:4px;align-items:flex-end;width:100%;height:100%;justify-content:center}
+.bg-in{width:12px;background:var(--acc);border-radius:4px 4px 0 0;transition:filter var(--dur)}
+.bg-out{width:12px;background:var(--s3);border-radius:4px 4px 0 0}
+.bg-lbl{font-size:9.5px;color:var(--t3);font-weight:500;transition:color var(--dur)}
+.bg-col.active .bg-lbl{color:var(--t1)}
+.bg-col.active .bg-in{filter:brightness(1.15)}
+.bars2.has-active .bg-col:not(.active){opacity:0.45}
+.chart-tip{position:absolute;left:0;bottom:0;transform:translate(-50%,8px);background:var(--s3);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;pointer-events:none;opacity:0;transition:opacity 150ms var(--ease);z-index:20;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+.chart-tip.show{opacity:1}
+.chart-tip .tip-d{font-size:10px;color:var(--t3);font-weight:500;margin-bottom:6px;letter-spacing:0.02em;text-transform:uppercase}
+.chart-tip .tip-row{display:flex;align-items:center;gap:7px;font-size:12px;font-family:var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.chart-tip .tip-row+.tip-row{margin-top:3px}
+.chart-tip .tip-k{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.chart-tip .tip-lbl{color:var(--t3);font-family:var(--f-ui);font-size:10.5px;font-weight:500;min-width:24px}
+.chart-tip .tip-v{color:var(--t1);font-weight:600;margin-left:auto}
+.src-row{display:flex;align-items:center;gap:12px;padding:14px 0}
+.src-row+.src-row{border-top:1px solid var(--line)}
+.src-ic{width:40px;height:40px;border-radius:12px;background:var(--acc-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.src-ic i{font-size:18px;color:var(--acc)}
+.src-info{flex:1;min-width:0}.src-name{font-size:13px;font-weight:500;color:var(--t1);letter-spacing:-0.02em}
+.src-meta{font-size:11px;color:var(--t3);margin-top:2px;letter-spacing:-0.01em}
+.src-amt{font-family:var(--f-display);font-size:14px;font-weight:600;color:var(--acc);font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.src-bar{height:4px;background:var(--s3);border-radius:99px;margin-top:7px;overflow:hidden}
+.src-fill{height:100%;background:var(--acc);border-radius:99px}
+
+/* profile */
+.prof-hero{display:flex;flex-direction:column;align-items:center;padding:28px 22px 18px}
+.av-lg{width:84px;height:84px;border-radius:26px;background:var(--s1);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-size:32px;font-weight:600;color:var(--acc);margin-bottom:14px}
+.prof-name{font-family:var(--f-display);font-size:22px;font-weight:600;color:var(--t1);letter-spacing:-0.03em}
+.prof-email{font-size:12px;color:var(--t3);margin-top:5px;letter-spacing:-0.01em}
+.plan-pill{margin-top:12px;padding:5px 15px;background:var(--acc-soft);border:1px solid var(--acc-line);border-radius:99px;font-size:11px;color:var(--acc);font-weight:600;letter-spacing:0.01em}
+.biz-bar{margin:0 22px 22px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md);display:flex}
+.bb-cell{flex:1;padding:15px;text-align:center}.bb-cell+.bb-cell{border-left:1px solid var(--line)}
+.bb-v{font-family:var(--f-display);font-size:16px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
+.bb-l{font-size:9.5px;color:var(--t3);margin-top:4px;font-weight:500;letter-spacing:-0.01em}
+.sg{padding:0 22px 22px}
+.sgt{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:0.03em;padding:14px 2px 8px;text-transform:uppercase}
+.sw{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.sr{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer;transition:background var(--dur);min-height:44px}
+.sr:active{background:var(--s2)}.sr+.sr{border-top:1px solid var(--line)}
+.sr-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--s2)}
+.sr-ic i{font-size:15px;color:var(--t2)}
+.sr-ic.acc i{color:var(--acc)}
+.sr-lbl{flex:1;font-size:14px;font-weight:500;color:var(--t1);letter-spacing:-0.02em}
+.sr-val{font-size:12px;color:var(--t3);margin-right:6px;letter-spacing:-0.01em}
+.sr i.chev{font-size:16px;color:var(--t3)}
+
+.foot{color:var(--t3);font-size:11px;margin-top:20px;text-align:center;max-width:340px;line-height:1.6;letter-spacing:-0.01em}
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--acc);color:#04140C;padding:10px 18px;border-radius:99px;font-size:12px;font-weight:600;opacity:0;transition:all var(--dur) var(--ease);pointer-events:none;z-index:50;white-space:nowrap;box-shadow:0 8px 24px rgba(52,226,155,0.3);letter-spacing:-0.01em}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* bottom sheet (edit name) */
+.sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:110;display:none;align-items:flex-end;opacity:0;transition:opacity var(--dur) var(--ease)}
+.sheet-scrim.show{display:flex;opacity:1}
+.sheet{width:100%;background:var(--s2);border-top:1px solid var(--line2);border-radius:24px 24px 0 0;padding:12px 22px 26px;transform:translateY(100%);transition:transform 300ms var(--ease)}
+.sheet-scrim.show .sheet{transform:translateY(0)}
+.sheet-handle{width:38px;height:4px;border-radius:99px;background:var(--s3);margin:0 auto 16px}
+.sheet-title{font-family:var(--f-display);font-size:16px;font-weight:600;color:var(--t1);letter-spacing:-0.02em;margin-bottom:12px}
+.sheet-input{width:100%;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:15px;color:var(--t1);outline:none;font-family:var(--f-ui);transition:border var(--dur)}
+.sheet-input:focus{border-color:var(--acc)}
+.sheet-actions{display:flex;gap:10px;margin-top:16px}
+.sheet-btn{flex:1;padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f-ui);background:var(--acc);color:#04140C;transition:transform var(--dur)}
+.sheet-btn:active{transform:scale(0.97)}
+.sheet-btn.ghost{background:var(--s3);color:var(--t1)}
+</style>
+</head>
+<body>
+
+<div class="page-title">Igiceri · <b>Interactive Prototype</b> — tap the tabs, chat, filters &amp; paste a MoMo SMS</div>
+
+<div class="nav-tabs">
+  <button class="ntab on" onclick="go('home',this)">Home</button>
+  <button class="ntab" onclick="go('txs',this)">Money In/Out</button>
+  <button class="ntab" onclick="go('chat',this)">Ask</button>
+  <button class="ntab" onclick="go('rep',this)">Reports</button>
+  <button class="ntab" onclick="go('prof',this)">Profile</button>
+</div>
+
+<div class="phone">
+  <div class="sb"><span class="sb-time">9:41</span><span style="width:60px"></span>
+    <span class="sb-icons"><i class="ti ti-antenna-bars-5"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+
+  <!-- AUTH GATE -->
+  <div class="auth" id="authScreen">
+    <div class="auth-mark">I</div>
+    <div class="auth-title" id="authTitle">Create your account</div>
+    <div class="auth-sub" id="authSub">Your money, private on this phone</div>
+
+    <div class="auth-name" id="authNameStage">
+      <input id="authName" class="auth-input" placeholder="Your name" maxlength="20" autocomplete="off">
+      <button class="auth-btn" id="nameBtn" onclick="nameContinue()" disabled>Continue</button>
+    </div>
+
+    <div class="auth-pin" id="authPinStage" style="display:none">
+      <div class="pin-dots" id="pinDots"></div>
+      <div class="pin-err" id="pinErr">&nbsp;</div>
+      <div class="keypad" id="keypad"></div>
+      <div class="auth-link" id="authLink"></div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen on" id="s-home">
+    <div class="hero">
+      <div class="hero-row">
+        <div><div class="greet-sub">Good morning</div><div class="greet-name">Kalisa</div></div>
+        <div class="hero-actions">
+          <div class="icon-btn" onclick="openNotifs()"><i class="ti ti-bell"></i><div class="badge count" id="bellBadge">3</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bal-block">
+      <div class="bal-top">
+        <span class="bal-label">Current balance</span>
+        <span class="sms-badge"><i class="ti ti-message-2"></i>Live from SMS</span>
+        <button class="bal-eye" id="balEye" onclick="toggleBalance()" aria-label="Hide balance"><i class="ti ti-eye"></i></button>
+      </div>
+      <div class="bal-amount"><span class="cur">RWF</span><span id="balVal">1,284,500</span></div>
+      <div class="bal-source">
+        <i class="ti ti-device-mobile"></i>
+        <div class="bal-source-txt" id="balSource">Read from MTN MoMo SMS · <b>2 min ago</b></div>
+      </div>
+    </div>
+
+    <div class="home-seg-wrap">
+      <div class="home-seg">
+        <button class="hseg" onclick="setHomePeriod(this,'today')">Today</button>
+        <button class="hseg" onclick="setHomePeriod(this,'yesterday')">Yesterday</button>
+        <button class="hseg on" onclick="setHomePeriod(this,'week')">This week</button>
+      </div>
+    </div>
+
+    <div class="acct-row">
+      <div class="acct io-in">
+        <div class="acct-h"><span class="io-ic"><i class="ti ti-arrow-down-left"></i></span><span class="acct-name">Money in</span></div>
+        <div class="acct-v" id="inVal" style="color:var(--acc)">+ 1,240,000</div>
+      </div>
+      <div class="acct io-out">
+        <div class="acct-h"><span class="io-ic out"><i class="ti ti-arrow-up-right"></i></span><span class="acct-name">Money out</span></div>
+        <div class="acct-v" id="outVal" style="color:var(--expense)">− 312,000</div>
+      </div>
+    </div>
+
+
+    <div class="sms-input-bar">
+      <input class="sms-input" id="smsInput" placeholder="Paste a MoMo SMS to update balance…" aria-label="Paste MoMo SMS">
+      <button class="sms-btn" onclick="parseSMS()">Read</button>
+    </div>
+
+    <div class="qa-row">
+      <div class="qa"><div class="qa-ic"><i class="ti ti-plus" style="color:var(--acc)"></i></div><div class="qa-lbl">Record</div></div>
+      <div class="qa" onclick="demoSync()"><div class="qa-ic"><i class="ti ti-refresh"></i></div><div class="qa-lbl">Sync SMS</div></div>
+      <div class="qa" onclick="go('rep')"><div class="qa-ic"><i class="ti ti-chart-bar"></i></div><div class="qa-lbl">Reports</div></div>
+    </div>
+
+    <div class="sc sc-recent">
+      <div class="sh"><span class="st">Recent</span><span class="sl" onclick="go('txs')">See all</span></div>
+      <div class="list" id="recentList">
+        <div class="tr">
+          <div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+          <div class="tr-info"><div class="tr-name">MoMo · 0788 442 ***</div><div class="tr-cat"><span class="in-tag">RECEIVED</span><span class="dot-sep"></span>Auto-read</div></div>
+          <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 120,000</div><div class="tr-bal">Bal 1,284,500</div></div>
+        </div>
+        <div class="tr">
+          <div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+          <div class="tr-info"><div class="tr-name">Airtel · 0733 ***</div><div class="tr-cat"><span class="in-tag">RECEIVED</span><span class="dot-sep"></span>Order #1182</div></div>
+          <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 64,500</div><div class="tr-bal">Bal 1,164,500</div></div>
+        </div>
+        <div class="tr">
+          <div class="tr-ic"><i class="ti ti-arrow-up-right" style="color:var(--expense)"></i></div>
+          <div class="tr-info"><div class="tr-name">Simba Wholesale</div><div class="tr-cat">Stock · paid out</div></div>
+          <div class="tr-right"><div class="tr-amt" style="color:var(--expense)">− 180,000</div><div class="tr-bal">Bal 1,100,000</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONEY IN/OUT -->
+  <div class="screen" id="s-txs">
+    <div class="scr-hd">
+      <div class="scr-title">Money in / out</div>
+      <div class="searchbar"><i class="ti ti-search"></i><input type="text" id="txSearch" placeholder="Search by name, e.g. Inyange…" oninput="applyTxFilters()" aria-label="Search payments"><i class="ti ti-x sb-clear" id="sbClear" onclick="clearTxSearch()" style="display:none"></i></div>
+    </div>
+    <div class="date-range">
+      <div class="dr-field">
+        <span class="dr-lbl">From</span>
+        <input type="date" class="dr-input" id="drFrom" value="2025-06-01" onchange="applyDateRange()">
+      </div>
+      <i class="ti ti-arrow-right dr-arrow"></i>
+      <div class="dr-field">
+        <span class="dr-lbl">To</span>
+        <input type="date" class="dr-input" id="drTo" value="2025-06-30" onchange="applyDateRange()">
+      </div>
+    </div>
+    <div class="tx-sum">
+      <div class="tsc lead"><div class="tsc-v" style="color:var(--acc)" id="txInSum">+ 2.14M</div><div class="tsc-l" id="txInLbl">Money in · June</div></div>
+      <div class="tsc"><div class="tsc-v" style="color:var(--expense)" id="txOutSum">− 612K</div><div class="tsc-l" id="txOutLbl">Money out · June</div></div>
+    </div>
+    <div class="tx-filter">
+      <div class="chip on" onclick="filt(this)">Money in</div><div class="chip" onclick="filt(this)">All</div><div class="chip" onclick="filt(this)">Money out</div><div class="chip" onclick="filt(this)">Airtel</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;scrollbar-width:none" id="txScroll">
+      <div class="tx-group">
+        <div class="gh"><span>Today</span><span class="gh-in">+ 524,500</span></div>
+        <div style="padding:0 22px"><div class="list">
+          <div class="tr" data-type="in" data-prov="mtn"><div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+            <div class="tr-info"><div class="tr-name">MTN MoMo · Inyange Ltd</div><div class="tr-cat"><span class="in-tag">IN</span><span class="dot-sep"></span>Invoice</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 340,000</div><div class="tr-bal">Bal 1,284,500</div></div></div>
+          <div class="tr" data-type="in" data-prov="mtn"><div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+            <div class="tr-info"><div class="tr-name">MTN MoMo · 0788 442</div><div class="tr-cat"><span class="in-tag">IN</span><span class="dot-sep"></span>Sale</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 120,000</div><div class="tr-bal">Bal 944,500</div></div></div>
+          <div class="tr" data-type="in" data-prov="airtel"><div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+            <div class="tr-info"><div class="tr-name">Airtel Money · 0733</div><div class="tr-cat"><span class="in-tag">IN</span><span class="dot-sep"></span>Order #1182</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 64,500</div><div class="tr-bal">Bal 824,500</div></div></div>
+          <div class="tr" data-type="out" data-prov="mtn"><div class="tr-ic"><i class="ti ti-device-mobile" style="color:var(--expense)"></i></div>
+            <div class="tr-info"><div class="tr-name">MTN MoMo · Airtime</div><div class="tr-cat">Topup</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--expense)">− 8,000</div></div></div>
+        </div></div>
+      </div>
+      <div class="tx-group">
+        <div class="gh"><span>Yesterday</span><span class="gh-in">+ 410,000</span></div>
+        <div style="padding:0 22px"><div class="list">
+          <div class="tr" data-type="in" data-prov="mtn"><div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>
+            <div class="tr-info"><div class="tr-name">MTN MoMo · Sina Gerard</div><div class="tr-cat"><span class="in-tag">IN</span><span class="dot-sep"></span>Wholesale</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ 410,000</div></div></div>
+          <div class="tr" data-type="out" data-prov="other"><div class="tr-ic"><i class="ti ti-truck" style="color:var(--expense)"></i></div>
+            <div class="tr-info"><div class="tr-name">Simba Wholesale</div><div class="tr-cat">Inventory · stock</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--expense)">− 180,000</div></div></div>
+          <div class="tr" data-type="out" data-prov="airtel"><div class="tr-ic"><i class="ti ti-device-mobile" style="color:var(--expense)"></i></div>
+            <div class="tr-info"><div class="tr-name">Airtel Money · 0733</div><div class="tr-cat">Sent to supplier</div></div>
+            <div class="tr-right"><div class="tr-amt" style="color:var(--expense)">− 95,000</div></div></div>
+        </div></div>
+      </div>
+      <div class="tx-empty" id="txEmpty" style="display:none">
+        <i class="ti ti-inbox"></i>
+        <div class="tx-empty-t">No payments here</div>
+        <div class="tx-empty-s">Nothing matches this filter yet.</div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="screen" id="s-chat">
+    <div class="chat-outer">
+      <div class="chat-hdr"><div class="chat-hdr-title">Ask Igiceri</div>
+        <div class="chat-hdr-sub"><div class="online-dot"></div>Reads your balance &amp; payments from SMS</div></div>
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="msg-row"><div class="av">I</div><div style="display:flex;flex-direction:column">
+          <div class="bbl ai">Habari Kalisa. I read your MTN MoMo and Airtel Money SMS. Ask me your balance, how much came in, or who paid.</div>
+          <div class="msg-time">9:15 AM</div></div></div>
+        <div class="sugg" id="suggBox">
+          <div class="sugg-c" onclick="askQ('What is my balance?')">What is my balance?</div>
+          <div class="sugg-c" onclick="askQ('How much came in today?')">How much came in today?</div>
+          <div class="sugg-c" onclick="askQ('Who is my biggest payer?')">Who is my biggest payer?</div>
+          <div class="sugg-c" onclick="askQ('Am I growing?')">Am I growing?</div>
+        </div>
+      </div>
+      <div class="chat-in">
+        <input class="chat-input" id="chatInput" placeholder="Ask about your money…" onkeydown="if(event.key==='Enter')sendChat()" aria-label="Chat message">
+        <button class="send-btn" onclick="sendChat()" aria-label="Send"><i class="ti ti-arrow-up"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="screen" id="s-rep">
+    <div class="scr-hd"><div class="scr-title">Reports</div>
+      <div class="period-row">
+        <button class="ptab" onclick="setPeriod(this,'week')">Week</button>
+        <button class="ptab on" onclick="setPeriod(this,'month')">Month</button>
+        <button class="ptab" onclick="setPeriod(this,'quarter')">Quarter</button>
+        <button class="ptab" onclick="setPeriod(this,'year')">Year</button>
+      </div></div>
+    <div class="rep-income"><div class="ri-l">Total money in</div><div class="ri-v" id="riV">RWF 2,140,000</div>
+      <div class="ri-sub" id="riSub">47 payments · 32% above May</div></div>
+    <div class="sum2">
+      <div class="sum-card"><div class="sum-v" style="color:var(--expense)" id="sumOut">612K</div><div class="sum-l">Money out</div></div>
+      <div class="sum-card"><div class="sum-v" id="sumBal">1.28M</div><div class="sum-l">Current balance</div></div>
+    </div>
+    <div class="sc"><div class="sh"><span class="st" id="chartTitle">In vs out · weekly</span></div>
+      <div class="bars2" id="bars2"></div>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:14px">
+        <span style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:2px;background:var(--acc)"></span>In</span>
+        <span style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:2px;background:var(--s3)"></span>Out</span>
+      </div></div>
+    <div class="sc"><div class="sh"><span class="st">Top income sources</span></div>
+      <div class="list">
+        <div class="src-row"><div class="src-ic"><i class="ti ti-device-mobile"></i></div><div class="src-info"><div class="src-name">MTN MoMo</div><div class="src-meta">31 payments</div><div class="src-bar"><div class="src-fill" style="width:100%"></div></div></div><div class="src-amt">1.24M</div></div>
+        <div class="src-row"><div class="src-ic"><i class="ti ti-device-mobile"></i></div><div class="src-info"><div class="src-name">Airtel Money</div><div class="src-meta">7 payments</div><div class="src-bar"><div class="src-fill" style="width:26%"></div></div></div><div class="src-amt">322K</div></div>
+      </div></div>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="s-prof">
+    <div class="prof-hero"><div class="av-lg">K</div><div class="prof-name">Kalisa</div>
+      <div class="prof-email">+250 788 442 100</div><div class="plan-pill">Business account</div></div>
+    <div class="biz-bar">
+      <div class="bb-cell"><div class="bb-v">1.28M</div><div class="bb-l">Balance now</div></div>
+      <div class="bb-cell"><div class="bb-v">8.4M</div><div class="bb-l">In · 90 days</div></div>
+      <div class="bb-cell"><div class="bb-v">142</div><div class="bb-l">Payments</div></div>
+    </div>
+    <div class="sg">
+      <div class="sgt">Profile</div>
+      <div class="sw">
+        <div class="sr" onclick="openEditName()"><div class="sr-ic acc"><i class="ti ti-user-edit"></i></div><span class="sr-lbl">Display name</span><span class="sr-val" id="pfNameVal">Kalisa</span><i class="ti ti-chevron-right chev"></i></div>
+        <div class="sr" onclick="startChangePin()"><div class="sr-ic acc"><i class="ti ti-key"></i></div><span class="sr-lbl">Change PIN</span><span class="sr-val">•••••</span><i class="ti ti-chevron-right chev"></i></div>
+      </div>
+      <div class="sgt">SMS &amp; income</div>
+      <div class="sw">
+        <div class="sr"><div class="sr-ic acc"><i class="ti ti-message-2"></i></div><span class="sr-lbl">SMS reading</span><span class="sr-val">On</span><i class="ti ti-chevron-right chev"></i></div>
+        <div class="sr"><div class="sr-ic acc"><i class="ti ti-device-mobile"></i></div><span class="sr-lbl">Linked numbers</span><span class="sr-val">MTN, Airtel</span><i class="ti ti-chevron-right chev"></i></div>
+      </div>
+      <div class="sgt">Preferences</div>
+      <div class="sw">
+        <div class="sr"><div class="sr-ic"><i class="ti ti-currency-dollar"></i></div><span class="sr-lbl">Currency</span><span class="sr-val">RWF</span><i class="ti ti-chevron-right chev"></i></div>
+        <div class="sr"><div class="sr-ic"><i class="ti ti-lock"></i></div><span class="sr-lbl">Security</span><span class="sr-val">Face ID</span><i class="ti ti-chevron-right chev"></i></div>
+      </div>
+      <div class="sgt">Account</div>
+      <div class="sw">
+        <div class="sr"><div class="sr-ic"><i class="ti ti-download"></i></div><span class="sr-lbl">Export statement</span><i class="ti ti-chevron-right chev"></i></div>
+        <div class="sr" onclick="lockApp()"><div class="sr-ic"><i class="ti ti-logout"></i></div><span class="sr-lbl">Sign out</span><i class="ti ti-chevron-right chev"></i></div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="sheet-scrim" id="nameScrim" onclick="closeEditName(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Display name</div>
+      <input id="editName" class="sheet-input" maxlength="20" placeholder="Your name">
+      <div class="sheet-actions">
+        <button class="sheet-btn ghost" onclick="closeEditName()">Cancel</button>
+        <button class="sheet-btn" onclick="saveEditName()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="push" id="push" onclick="go('txs')">
+    <div class="push-ic"><i class="ti ti-arrow-down-left"></i></div>
+    <div class="push-body">
+      <div class="push-top"><span class="push-app">Igiceri · Money in</span><span class="push-time">now</span></div>
+      <div class="push-msg" id="pushMsg">You received RWF 45,000 from JEAN.</div>
+    </div>
+  </div>
+
+  <nav class="tbar">
+    <div class="ti-nav on" id="ti-home" onclick="go('home')"><i class="ti ti-home"></i><span>Home</span></div>
+    <div class="ti-nav" id="ti-txs" onclick="go('txs')"><i class="ti ti-arrow-down-left"></i><span>In / Out</span><div class="badge"></div></div>
+    <div class="ti-nav" id="ti-chat" onclick="go('chat')"><i class="ti ti-message-circle"></i><span>Ask</span></div>
+    <div class="ti-nav" id="ti-rep" onclick="go('rep')"><i class="ti ti-chart-bar"></i><span>Reports</span></div>
+    <div class="ti-nav" id="ti-prof" onclick="go('prof')"><i class="ti ti-user"></i><span>Profile</span></div>
+  </nav>
+</div>
+
+<div class="foot">Prototype only — sample data. On iOS, apps can't read the SMS inbox directly; balances arrive via the Share Extension or notification capture. On Android, automatic SMS reading is possible.</div>
+
+<script>
+const screenMap={home:'s-home',txs:'s-txs',chat:'s-chat',rep:'s-rep',prof:'s-prof'};
+const tabMap={home:'ti-home',txs:'ti-txs',chat:'ti-chat',rep:'ti-rep',prof:'ti-prof'};
+const order=['home','txs','chat','rep','prof'];
+function go(id,topBtn){
+  Object.values(screenMap).forEach(s=>document.getElementById(s).classList.remove('on'));
+  Object.values(tabMap).forEach(t=>document.getElementById(t).classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  document.getElementById(screenMap[id]).classList.add('on');
+  document.getElementById(screenMap[id]).scrollTop=0;
+  document.getElementById(tabMap[id]).classList.add('on');
+  if(topBtn)topBtn.classList.add('on');
+  else document.querySelectorAll('.ntab')[order.indexOf(id)].classList.add('on');
+}
+// Per-period report data
+const periodData={
+  week:{
+    totalIn:'RWF 524,500',sub:'8 payments · 12% above last week',out:'138K',bal:'1.28M',
+    title:'In vs out · daily',
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    bars:[[40,12],[78,20],[55,8],[92,18],[60,14],[88,30],[34,6]],
+    amts:[[48000,14000],[92000,22000],[64000,9000],[110000,20000],[70000,16000],[105000,35000],[35500,6000]]
+  },
+  month:{
+    totalIn:'RWF 2,140,000',sub:'47 payments · 32% above May',out:'612K',bal:'1.28M',
+    title:'In vs out · weekly',
+    labels:['Week 1','Week 2','Week 3','Week 4'],
+    bars:[[68,22],[80,30],[55,18],[92,25]],
+    amts:[[520000,168000],[610000,182000],[420000,112000],[590000,150000]]
+  },
+  quarter:{
+    totalIn:'RWF 5,980,000',sub:'132 payments · 18% above Q1',out:'1.74M',bal:'1.28M',
+    title:'In vs out · monthly',
+    labels:['April','May','June'],
+    bars:[[72,24],[81,28],[95,30]],
+    amts:[[1620000,540000],[2220000,610000],[2140000,590000]]
+  },
+  year:{
+    totalIn:'RWF 18,420,000',sub:'486 payments · best year yet',out:'5.9M',bal:'1.28M',
+    title:'In vs out · quarterly',
+    labels:['Q1','Q2','Q3','Q4'],
+    bars:[[58,20],[74,26],[88,28],[96,32]],
+    amts:[[3680000,1180000],[4620000,1520000],[5140000,1640000],[4980000,1560000]]
+  }
+};
+function renderBars(key){
+  const d=periodData[key];const c=document.getElementById('bars2');if(!c)return;
+  const max=Math.max(...d.bars.map(p=>Math.max(p[0],p[1])));
+  c.innerHTML='';
+  const tip=document.createElement('div');tip.className='chart-tip';c.appendChild(tip);
+  function showTip(col,i){
+    const a=d.amts[i];
+    tip.innerHTML='<div class="tip-d">'+d.labels[i]+'</div>'+
+      '<div class="tip-row"><span class="tip-k" style="background:var(--acc)"></span><span class="tip-lbl">In</span><span class="tip-v">'+fmt(a[0])+'</span></div>'+
+      '<div class="tip-row"><span class="tip-k" style="background:var(--s3);border:1px solid var(--line2)"></span><span class="tip-lbl">Out</span><span class="tip-v">'+fmt(a[1])+'</span></div>';
+    const inPct=d.bars[i][0]/max;
+    tip.style.left=(col.offsetLeft+col.offsetWidth/2)+'px';
+    tip.style.bottom=(inPct*122+14)+'px';
+    tip.style.transform='translate(-50%,0)';
+    tip.classList.add('show');
+    c.classList.add('has-active');
+    c.querySelectorAll('.bg-col').forEach(x=>x.classList.remove('active'));
+    col.classList.add('active');
+  }
+  function hideTip(){tip.classList.remove('show');c.classList.remove('has-active');c.querySelectorAll('.bg-col').forEach(x=>x.classList.remove('active'))}
+  d.bars.forEach((p,i)=>{
+    const col=document.createElement('div');col.className='bg-col';
+    col.innerHTML='<div class="bg-pair"><div class="bg-in" style="height:0%"></div><div class="bg-out" style="height:0%"></div></div><div class="bg-lbl">'+d.labels[i]+'</div>';
+    c.appendChild(col);
+    const ins=col.querySelector('.bg-in'),outs=col.querySelector('.bg-out');
+    requestAnimationFrame(()=>setTimeout(()=>{
+      ins.style.transition='height 320ms cubic-bezier(0.4,0,0.2,1)';
+      outs.style.transition='height 320ms cubic-bezier(0.4,0,0.2,1)';
+      ins.style.height=(p[0]/max*100)+'%';outs.style.height=(p[1]/max*100)+'%';
+    },i*40));
+    col.addEventListener('mouseenter',()=>showTip(col,i));
+    col.addEventListener('mouseleave',hideTip);
+    col.addEventListener('click',(e)=>{e.stopPropagation();col.classList.contains('active')?hideTip():showTip(col,i)});
+  });
+  c.addEventListener('mouseleave',hideTip);
+}
+// Dismiss chart tooltip when tapping elsewhere
+document.getElementById('s-rep').addEventListener('click',()=>{
+  const c=document.getElementById('bars2');if(!c)return;
+  c.querySelector('.chart-tip')?.classList.remove('show');
+  c.classList.remove('has-active');
+  c.querySelectorAll('.bg-col').forEach(x=>x.classList.remove('active'));
+});
+function setPeriod(btn,key){
+  btn.closest('.period-row').querySelectorAll('.ptab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const d=periodData[key];
+  document.getElementById('riV').textContent=d.totalIn;
+  document.getElementById('riSub').textContent=d.sub;
+  document.getElementById('sumOut').textContent=d.out;
+  document.getElementById('sumBal').textContent=d.bal;
+  document.getElementById('chartTitle').textContent=d.title;
+  renderBars(key);
+}
+function applyDateRange(){
+  const from=document.getElementById('drFrom').value;
+  const to=document.getElementById('drTo').value;
+  if(!from||!to)return;
+  let f=new Date(from),t=new Date(to);
+  if(f>t){const tmp=from;document.getElementById('drFrom').value=to;document.getElementById('drTo').value=tmp;f=new Date(to);t=new Date(from);}
+  const days=Math.round((t-f)/86400000)+1;
+  // mock figures that scale with the number of days in range
+  const inPerDay=71000,outPerDay=20400;
+  const totIn=days*inPerDay,totOut=days*outPerDay;
+  const compact=n=>n>=1e6?(n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M':Math.round(n/1000)+'K';
+  document.getElementById('txInSum').textContent='+ '+compact(totIn);
+  document.getElementById('txOutSum').textContent='− '+compact(totOut);
+  const opt={month:'short',day:'numeric'};
+  const range=f.toLocaleDateString('en-US',opt)+' – '+t.toLocaleDateString('en-US',opt);
+  document.getElementById('txInLbl').textContent='Money in · '+range;
+  document.getElementById('txOutLbl').textContent='Money out · '+range;
+  toast(days+' day'+(days>1?'s':'')+' selected');
+}
+let txChipFilter='money in';
+function filt(c){
+  c.parentNode.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+  txChipFilter=c.textContent.trim().toLowerCase();
+  applyTxFilters();
+}
+function clearTxSearch(){document.getElementById('txSearch').value='';applyTxFilters()}
+function applyTxFilters(){
+  const f=txChipFilter;
+  const q=(document.getElementById('txSearch').value||'').trim().toLowerCase();
+  document.getElementById('sbClear').style.display=q?'':'none';
+  const matchChip=(tr)=>{
+    const t=tr.getAttribute('data-type'),p=tr.getAttribute('data-prov');
+    if(f==='all')return true;
+    if(f==='money in')return t==='in';
+    if(f==='money out')return t==='out';
+    if(f==='airtel')return p==='airtel';
+    return true;
+  };
+  const matchSearch=(tr)=>{
+    if(!q)return true;
+    const name=tr.querySelector('.tr-name')?.textContent.toLowerCase()||'';
+    const cat=tr.querySelector('.tr-cat')?.textContent.toLowerCase()||'';
+    return name.includes(q)||cat.includes(q);
+  };
+  let totalVisible=0;
+  document.querySelectorAll('#txScroll .tx-group').forEach(group=>{
+    let shown=0;
+    group.querySelectorAll('.tr').forEach(tr=>{
+      const ok=matchChip(tr)&&matchSearch(tr);
+      tr.style.display=ok?'':'none';
+      if(ok)shown++;
+    });
+    group.style.display=shown?'':'none';
+    const gi=group.querySelector('.gh-in');
+    if(gi)gi.style.visibility=(!q&&(f==='all'||f==='money in'))?'visible':'hidden';
+    totalVisible+=shown;
+  });
+  const empty=document.getElementById('txEmpty');
+  empty.style.display=totalVisible?'none':'flex';
+  if(!totalVisible&&q){
+    empty.querySelector('.tx-empty-t').textContent='No matches for "'+document.getElementById('txSearch').value+'"';
+    empty.querySelector('.tx-empty-s').textContent='Try a different name or institution.';
+  }else{
+    empty.querySelector('.tx-empty-t').textContent='No payments here';
+    empty.querySelector('.tx-empty-s').textContent='Nothing matches this filter yet.';
+  }
+}
+const homePeriods={
+  today:{inV:'+ 524,500',outV:'− 138,000'},
+  yesterday:{inV:'+ 410,000',outV:'− 95,000'},
+  week:{inV:'+ 1,240,000',outV:'− 312,000'}
+};
+function setHomePeriod(btn,key){
+  btn.closest('.home-seg').querySelectorAll('.hseg').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const d=homePeriods[key];
+  document.getElementById('inVal').textContent=d.inV;
+  document.getElementById('outVal').textContent=d.outV;
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+const fmt=n=>n.toLocaleString('en-US');
+let balanceHidden=false;
+function toggleBalance(){
+  balanceHidden=!balanceHidden;
+  const eye=document.getElementById('balEye');
+  const phone=document.querySelector('.phone');
+  if(balanceHidden){
+    phone.classList.add('amts-hidden');
+    eye.innerHTML='<i class="ti ti-eye-off"></i>';
+    eye.setAttribute('aria-label','Show balance');
+  }else{
+    phone.classList.remove('amts-hidden');
+    eye.innerHTML='<i class="ti ti-eye"></i>';
+    eye.setAttribute('aria-label','Hide balance');
+  }
+}
+function parseSMS(){
+  const txt=document.getElementById('smsInput').value;
+  if(!txt.trim()){toast('Paste an SMS first');return}
+  const balM=txt.match(/(?:new balance|balance is|bal[:\s])[^0-9]*([\d,]+)/i);
+  const amtM=txt.match(/(?:received|got|deposit|payment of)[^0-9]*([\d,]+)/i);
+  let updated=false;
+  if(balM){
+    const bal=parseInt(balM[1].replace(/,/g,''));
+    document.getElementById('balVal').textContent=fmt(bal);
+    document.getElementById('balSource').innerHTML='Read from pasted SMS · <b>just now</b>';
+    updated=true;
+  }
+  if(amtM){
+    const amt=parseInt(amtM[1].replace(/,/g,''));
+    const list=document.getElementById('recentList');
+    const row=document.createElement('div');row.className='tr';
+    row.innerHTML='<div class="tr-ic in"><i class="ti ti-device-mobile"></i></div>'+
+      '<div class="tr-info"><div class="tr-name">New payment · SMS</div><div class="tr-cat"><span class="in-tag">RECEIVED</span><span class="dot-sep"></span>just now</div></div>'+
+      '<div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ '+fmt(amt)+'</div></div>';
+    list.insertBefore(row,list.firstChild);
+    updated=true;
+  }
+  if(updated){toast('Balance updated from SMS');document.getElementById('smsInput').value=''}
+  else toast("No balance found in that SMS");
+}
+function demoSync(){document.getElementById('smsInput').value='MTN MoMo: You have received RWF 95,000 from JEAN. Your new balance is 1,379,500 RWF. Ref 8842.';parseSMS()}
+const chatReplies={
+  'what is my balance':'Your current balance is RWF 1,284,500 (read from SMS 2 min ago):\n• MTN MoMo — 1,108,200\n• Airtel Money — 176,300',
+  'how much came in today':'Today you received RWF 524,500 across 3 payments:\n• MTN MoMo · Inyange — 340,000\n• MTN MoMo — 120,000\n• Airtel — 64,500',
+  'who is my biggest payer':'Top payer this month is Inyange Ltd — RWF 680,000 across 4 invoices.',
+  'am i growing':'Yes — RWF 2.14M in this month, up 32% from May. 90-day total RWF 8.4M.'
+};
+function reply(q){
+  const k=q.toLowerCase().replace(/[^a-z ]/g,'').trim();
+  if(chatReplies[k])return chatReplies[k];
+  if(k.includes('balance'))return chatReplies['what is my balance'];
+  if(k.includes('came in')||k.includes('today')||k.includes('received'))return chatReplies['how much came in today'];
+  if(k.includes('payer')||k.includes('who'))return chatReplies['who is my biggest payer'];
+  if(k.includes('grow')||k.includes('month'))return chatReplies['am i growing'];
+  return "I track every payment on this phone. Ask about your balance, today's income, your biggest payer, or whether you're growing.";
+}
+function pushUser(q){
+  const msgs=document.getElementById('chat-msgs');
+  const s=document.getElementById('suggBox');if(s)s.remove();
+  const u=document.createElement('div');u.className='msg-row u';
+  u.innerHTML='<div style="display:flex;flex-direction:column;align-items:flex-end"><div class="bbl u">'+q.replace(/</g,'')+'</div><div class="msg-time" style="text-align:right">Now</div></div>';
+  msgs.appendChild(u);
+  const t=document.createElement('div');t.className='msg-row';
+  t.innerHTML='<div class="av">I</div><div class="dot-typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{t.remove();const r=reply(q);
+    const a=document.createElement('div');a.className='msg-row';
+    a.innerHTML='<div class="av">I</div><div style="display:flex;flex-direction:column"><div class="bbl ai">'+r.replace(/\n/g,'<br>')+'</div><div class="msg-time">Now</div></div>';
+    msgs.appendChild(a);msgs.scrollTop=msgs.scrollHeight;},1000);
+}
+function askQ(q){pushUser(q)}
+function sendChat(){const i=document.getElementById('chatInput');if(!i.value.trim())return;pushUser(i.value);i.value=''}
+renderBars('month');
+// apply the default active In/Out filter on load
+(function(){const ac=document.querySelector('#s-txs .chip.on');if(ac)filt(ac);})();
+
+// ---- Auth: name + 5-digit PIN, remembered on device ----
+const PIN_LEN=5;
+let auth={mode:'signup',name:'',pin:'',stage:'name',firstPin:''};
+let memUser=null; // in-memory fallback when localStorage is blocked (e.g. sandboxed preview)
+function loadUser(){try{return JSON.parse(localStorage.getItem('igiceri_user')||'null')}catch(e){return memUser}}
+function saveUser(u){memUser=u;try{localStorage.setItem('igiceri_user',JSON.stringify(u))}catch(e){}}
+function forgetUser(){memUser=null;try{localStorage.removeItem('igiceri_user')}catch(e){}}
+function buildKeypad(){
+  const k=document.getElementById('keypad');k.innerHTML='';
+  const keys=['1','2','3','4','5','6','7','8','9','','0','back'];
+  keys.forEach(key=>{
+    const b=document.createElement('button');
+    if(key===''){b.className='key ghost';b.disabled=true;}
+    else if(key==='back'){b.className='key ghost';b.innerHTML='<i class="ti ti-backspace"></i>';b.onclick=pinBack;}
+    else{b.className='key';b.textContent=key;b.onclick=()=>pinPress(key);}
+    k.appendChild(b);
+  });
+}
+function renderDots(){
+  const d=document.getElementById('pinDots');d.innerHTML='';
+  for(let i=0;i<PIN_LEN;i++){const s=document.createElement('div');s.className='pin-dot'+(i<auth.pin.length?' on':'');d.appendChild(s);}
+}
+function pinPress(n){
+  if(auth.pin.length>=PIN_LEN)return;
+  auth.pin+=n;renderDots();
+  if(auth.pin.length===PIN_LEN)setTimeout(submitPin,180);
+}
+function pinBack(){auth.pin=auth.pin.slice(0,-1);renderDots();}
+function pinError(msg){
+  const e=document.getElementById('pinErr');e.textContent=msg;e.classList.add('shake');
+  setTimeout(()=>e.classList.remove('shake'),420);
+  auth.pin='';renderDots();
+}
+function submitPin(){
+  if(auth.mode==='signup'||auth.mode==='changepin'){
+    if(auth.stage==='pin'){
+      // first entry — now ask to confirm
+      auth.firstPin=auth.pin;auth.pin='';auth.stage='confirm';
+      document.getElementById('authTitle').textContent='Confirm your PIN';
+      document.getElementById('authSub').textContent='Enter the same 5 digits again';
+      document.getElementById('pinErr').textContent=' ';
+      renderDots();
+    }else{
+      // confirm entry
+      if(auth.pin===auth.firstPin){
+        saveUser({name:auth.name,pin:auth.pin});
+        if(auth.mode==='changepin'){
+          document.getElementById('authScreen').style.display='none';
+          toast('PIN updated');
+        }else{
+          startSignin(auth.name);
+          document.getElementById('authSub').textContent='Account created — sign in to continue';
+        }
+      }else{
+        // mismatch — restart PIN setup
+        auth.firstPin='';auth.stage='pin';
+        document.getElementById('authTitle').textContent=auth.mode==='changepin'?'Set a new PIN':'Set a 5-digit PIN';
+        document.getElementById('authSub').textContent=auth.mode==='changepin'?'Choose 5 new digits':'You\'ll use this to unlock the app';
+        pinError('PINs didn\'t match, start again');
+      }
+    }
+  }else{
+    const u=loadUser();
+    if(u&&auth.pin===u.pin){unlock(u.name);}
+    else{pinError('Wrong PIN, try again');}
+  }
+}
+function showAuth(){document.getElementById('authScreen').style.display='flex';}
+function unlock(name){
+  document.getElementById('authScreen').style.display='none';
+  setName(name);
+  go('home');
+}
+function startSignup(){
+  auth={mode:'signup',name:'',pin:'',stage:'name'};
+  document.getElementById('authTitle').textContent='Create your account';
+  document.getElementById('authSub').textContent='Your money, private on this phone';
+  document.getElementById('authNameStage').style.display='flex';
+  document.getElementById('authPinStage').style.display='none';
+  const ni=document.getElementById('authName');ni.value='';
+  document.getElementById('nameBtn').disabled=true;
+  setTimeout(()=>ni.focus(),50);
+  showAuth();
+}
+function nameContinue(){
+  const v=document.getElementById('authName').value.trim();
+  if(v.length<2)return;
+  auth.name=v;auth.stage='pin';auth.pin='';
+  document.getElementById('authTitle').textContent='Set a 5-digit PIN';
+  document.getElementById('authSub').textContent='You\'ll use this to unlock the app';
+  document.getElementById('authNameStage').style.display='none';
+  document.getElementById('authPinStage').style.display='flex';
+  document.getElementById('authLink').textContent='← Back';
+  document.getElementById('authLink').onclick=startSignup;
+  renderDots();
+}
+function startSignin(name){
+  auth={mode:'signin',name:name,pin:'',stage:'pin'};
+  document.getElementById('authTitle').textContent='Welcome back, '+name;
+  document.getElementById('authSub').textContent='Enter your PIN to unlock';
+  document.getElementById('authNameStage').style.display='none';
+  document.getElementById('authPinStage').style.display='flex';
+  document.getElementById('pinErr').textContent=' ';
+  document.getElementById('authLink').textContent='Use a different account';
+  document.getElementById('authLink').onclick=()=>{forgetUser();startSignup();};
+  renderDots();
+  showAuth();
+}
+function lockApp(){const u=loadUser();if(u)startSignin(u.name);else startSignup();}
+function setName(name){
+  document.querySelectorAll('.greet-name, .prof-name').forEach(el=>el.textContent=name);
+  const pv=document.getElementById('pfNameVal');if(pv)pv.textContent=name;
+}
+// edit display name
+function openEditName(){
+  const u=loadUser();const cur=(u&&u.name)||document.querySelector('.prof-name').textContent;
+  const i=document.getElementById('editName');i.value=cur;
+  document.getElementById('nameScrim').classList.add('show');
+  setTimeout(()=>i.focus(),60);
+}
+function closeEditName(){document.getElementById('nameScrim').classList.remove('show');}
+function saveEditName(){
+  const v=document.getElementById('editName').value.trim();
+  if(v.length<2){toast('Enter at least 2 characters');return}
+  const u=loadUser()||{name:v,pin:''};u.name=v;saveUser(u);
+  setName(v);
+  document.getElementById('nameScrim').classList.remove('show');
+  toast('Name updated');
+}
+// change PIN — reuse the auth keypad without signing out
+function startChangePin(){
+  const u=loadUser();const name=(u&&u.name)||document.querySelector('.prof-name').textContent;
+  auth={mode:'changepin',name:name,pin:'',stage:'pin',firstPin:''};
+  document.getElementById('authTitle').textContent='Set a new PIN';
+  document.getElementById('authSub').textContent='Choose 5 new digits';
+  document.getElementById('authNameStage').style.display='none';
+  document.getElementById('authPinStage').style.display='flex';
+  document.getElementById('pinErr').textContent=' ';
+  document.getElementById('authLink').textContent='Cancel';
+  document.getElementById('authLink').onclick=()=>{document.getElementById('authScreen').style.display='none';};
+  renderDots();showAuth();
+}
+function initAuth(){
+  buildKeypad();
+  const ni=document.getElementById('authName');
+  ni.addEventListener('input',()=>{document.getElementById('nameBtn').disabled=ni.value.trim().length<2;});
+  ni.addEventListener('keydown',e=>{if(e.key==='Enter'&&ni.value.trim().length>=2)nameContinue();});
+  const u=loadUser();
+  if(u)startSignin(u.name);else startSignup();
+}
+initAuth();
+
+// ---- Live incoming-money notifications ----
+const senders=[
+  {name:'JEAN B.',prov:'mtn',ic:'ti-device-mobile'},
+  {name:'Inyange Ltd',prov:'mtn',ic:'ti-device-mobile'},
+  {name:'MARIE U.',prov:'airtel',ic:'ti-device-mobile'},
+  {name:'Sina Gerard',prov:'mtn',ic:'ti-device-mobile'},
+  {name:'ERIC N.',prov:'mtn',ic:'ti-device-mobile'},
+  {name:'Walk-in sale',prov:'mtn',ic:'ti-device-mobile'},
+  {name:'CLAUDINE M.',prov:'airtel',ic:'ti-device-mobile'}
+];
+let bellCount=3;
+function parseAmt(t){return parseInt((t||'0').replace(/[^\d]/g,''))||0}
+function incomingPayment(){
+  const s=senders[Math.floor(Math.random()*senders.length)];
+  const amt=[15000,24000,45000,64500,82000,120000,150000][Math.floor(Math.random()*7)];
+  // 1. balance goes up
+  const balEl=document.getElementById('balVal');
+  const newBal=parseAmt(balEl.textContent)+amt;
+  balEl.textContent=fmt(newBal);
+  document.getElementById('balSource').innerHTML='Read from '+(s.prov==='airtel'?'Airtel Money':'MTN MoMo')+' SMS · <b>just now</b>';
+  // 2. push banner
+  const push=document.getElementById('push');
+  document.getElementById('pushMsg').innerHTML='You received <b>RWF '+fmt(amt)+'</b> from '+s.name+'.';
+  push.querySelector('.push-ic i').className='ti '+s.ic;
+  push.classList.add('show');
+  clearTimeout(push._t);push._t=setTimeout(()=>push.classList.remove('show'),4200);
+  // 3. bell badge + ring
+  bellCount++;const bb=document.getElementById('bellBadge');bb.textContent=bellCount;bb.style.display='';
+  const bell=document.querySelector('.hero-actions .icon-btn');
+  bell.classList.add('ring');setTimeout(()=>bell.classList.remove('ring'),700);
+  // 4. prepend to Recent
+  const list=document.getElementById('recentList');
+  if(list){
+    const row=document.createElement('div');row.className='tr';
+    row.innerHTML='<div class="tr-ic in"><i class="ti '+s.ic+'"></i></div>'+
+      '<div class="tr-info"><div class="tr-name">'+s.name+'</div><div class="tr-cat"><span class="in-tag">RECEIVED</span><span class="dot-sep"></span>just now</div></div>'+
+      '<div class="tr-right"><div class="tr-amt" style="color:var(--acc)">+ '+fmt(amt)+'</div><div class="tr-bal">Bal '+fmt(newBal)+'</div></div>';
+    row.style.opacity='0';list.insertBefore(row,list.firstChild);
+    requestAnimationFrame(()=>{row.style.transition='opacity 300ms ease';row.style.opacity='1'});
+    // keep only the latest 5 in Recent
+    while(list.children.length>3){list.removeChild(list.lastElementChild)}
+  }
+}
+function openNotifs(){
+  bellCount=0;document.getElementById('bellBadge').textContent='0';
+  document.getElementById('bellBadge').style.display='none';
+  toast('All payment alerts read');
+}
+// fire a fresh payment every ~9 seconds
+setInterval(incomingPayment, 9000);
+setTimeout(incomingPayment, 2500);
+</script>
+</body>
+</html>
