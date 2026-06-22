@@ -802,17 +802,25 @@ function applyTxFilters(){
     empty.querySelector('.tx-empty-s').textContent='Nothing matches this filter yet.';
   }
 }
-const homePeriods={
-  today:{inV:'+ 524,500',outV:'− 138,000'},
-  yesterday:{inV:'+ 410,000',outV:'− 95,000'},
-  week:{inV:'+ 1,240,000',outV:'− 312,000'}
+// live per-period totals (numeric)
+const homeData={
+  today:{in:524500,out:138000},
+  yesterday:{in:410000,out:95000},
+  week:{in:1240000,out:312000}
 };
+let homePeriod='week';
+function renderHome(pulse){
+  const d=homeData[homePeriod];
+  const inEl=document.getElementById('inVal');
+  inEl.textContent='+ '+fmt(d.in);
+  document.getElementById('outVal').textContent='− '+fmt(d.out);
+  if(pulse)inEl.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});
+}
 function setHomePeriod(btn,key){
   btn.closest('.home-seg').querySelectorAll('.hseg').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  const d=homePeriods[key];
-  document.getElementById('inVal').textContent=d.inV;
-  document.getElementById('outVal').textContent=d.outV;
+  homePeriod=key;
+  renderHome(false);
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 const fmt=n=>n.toLocaleString('en-US');
@@ -1070,13 +1078,10 @@ function incomingPayment(){
   push.querySelector('.push-ic i').className='ti '+s.ic;
   push.classList.add('show');
   clearTimeout(push._t);push._t=setTimeout(()=>push.classList.remove('show'),4200);
-  // 3. money-in widget goes up by the received amount
-  const inEl=document.getElementById('inVal');
-  if(inEl){
-    const newIn=parseAmt(inEl.textContent)+amt;
-    inEl.textContent='+ '+fmt(newIn);
-    inEl.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});
-  }
+  // 3. money-in: a payment arriving now counts for Today and This week only
+  homeData.today.in+=amt;
+  homeData.week.in+=amt;
+  renderHome(homePeriod==='today'||homePeriod==='week');
   // 4. bell badge + ring
   bellCount++;const bb=document.getElementById('bellBadge');bb.textContent=bellCount;bb.style.display='';
   const bell=document.querySelector('.hero-actions .icon-btn');
