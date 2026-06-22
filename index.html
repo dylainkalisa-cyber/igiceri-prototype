@@ -1070,7 +1070,14 @@ function incomingPayment(){
   push.querySelector('.push-ic i').className='ti '+s.ic;
   push.classList.add('show');
   clearTimeout(push._t);push._t=setTimeout(()=>push.classList.remove('show'),4200);
-  // 3. bell badge + ring
+  // 3. money-in widget goes up by the received amount
+  const inEl=document.getElementById('inVal');
+  if(inEl){
+    const newIn=parseAmt(inEl.textContent)+amt;
+    inEl.textContent='+ '+fmt(newIn);
+    inEl.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});
+  }
+  // 4. bell badge + ring
   bellCount++;const bb=document.getElementById('bellBadge');bb.textContent=bellCount;bb.style.display='';
   const bell=document.querySelector('.hero-actions .icon-btn');
   bell.classList.add('ring');setTimeout(()=>bell.classList.remove('ring'),700);
